@@ -10,9 +10,15 @@ class MyItem(Item):
     # name = Field()
     title = Field()
     url = Field()
+    body = Field()
     clause_html = Field()
     brand = Field()
-    first_crawled_time = Field()
-    last_modified_time = Field()
+    #first_crawled_time = Field()
+    #last_modified_time = Field()
     is_valid = Field()
-    pass
+    domain = Field()
+    category = Field()
+
+    def __repr__(self):
+        return self.title
+    
