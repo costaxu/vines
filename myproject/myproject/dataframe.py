@@ -26,3 +26,7 @@ class DataFrame:
         for item in self.collection.find():
             item_list.append(item)
         return item_list
+
+    def BatchQueryByDomain(self, domain):
+        for item in self.collection.find({'domain': domain}):
+            yield item

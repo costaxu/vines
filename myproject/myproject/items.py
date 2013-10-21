@@ -18,6 +18,7 @@ class MyItem(Item):
     is_valid = Field()
     domain = Field()
     category = Field()
+    last_crawl_time = Field()
 
     def __repr__(self):
         return self.title
