@@ -48,6 +48,7 @@ class HuizeSpider(InsuranceSpider):
     )
 
     def parse_links(self, response):
+        self.log("###########parse_links %s" % response.url)
         url_prefix = '/'.join(response.url.split('/')[0:3])
         xxs = XmlXPathSelector(response)
         xxs.remove_namespaces()

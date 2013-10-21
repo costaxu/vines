@@ -1,14 +1,14 @@
 #coding: utf-8
-from scrapy.selector import HtmlXPathSelector
-from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.selector import HtmlXPathSelector, XmlXPathSelector
+from scrapy.spider import BaseSpider
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.http import Request
+from scrapy import log
 from myproject.items import MyItem
-from insurance_spider import InsuranceSpider
 import re, time, json
 from datetime import datetime
 
-TRAVEL_PAGE_URL = "http://www.zhongmin.cn/TravelAsy.asmx/TravelList"
+TRAVEL_TURN_PAGE_URL = "http://www.zhongmin.cn/TravelAsy.asmx/TravelList"
 class ItemParser:
     def ParseTitle(self, hxs):
         title = hxs.select('//span[@class="cp_tit"]/text()').extract()
@@ -34,7 +34,29 @@ class ItemParser:
             return category.replace('\r\n', '').replace(' ','')
         return u''
 
-class ZhongminSpider(CrawlSpider):
+class UrlMatch:
+    def __init__(self, patterns, callback):
+        self.m_patterns = patterns
+        self.m_callback = callback
+
+    def match(self, response):
+        matched = False
+        for pattern in self.m_patterns:
+            if re.search(pattern, response.url):
+                log.msg("pattern matched %s %s" % (pattern, response.url))
+                matched = True
+                break
+        if matched:
+            return self.m_callback(response)
+
+    
+class TurnPageExtractor:
+    def matches(self, url):
+        return True
+
+        
+
+class ZhongminSpider(BaseSpider):
     name = u'zhongmin'
     domain = u'zhongmin.cn'
     allowed_domains = [
@@ -46,40 +68,64 @@ class ZhongminSpider(CrawlSpider):
             'http://www.zhongmin.cn/Travel/',
             ]
     
-    rules = (
-        Rule(
-            SgmlLinkExtractor(
-                allow = (
+    url_matches = (
+        UrlMatch(
+            patterns = [
                     'Travel/Product/Travel.*html',
                     'ProductDetails.aspx',
-                    ), 
-
-                ),
+                    ], 
             callback = "parse_travel_item",
         ), 
-        Rule(
-            SgmlLinkExtractor(
-                allow = ("www.zhongmin.cn/TravelAsy.asmx"), 
-            ),
-            callback = "parse_page_url",
+        UrlMatch(
+            patterns = ['TravelAsy'],
+            callback = "parse_travel_asy",
         ),
-        Rule(
-            SgmlLinkExtractor(
-               allow = ("www.zhongmin.cn/Travel"), 
-            ),   
-            callback = "parse_pages",
-        ),
-    
+        UrlMatch(
+            patterns = ['www.zhongmin.cn/Travel/'],
+            callback = "parse_index",
+        )
     )
+    crawled_url_set = set()
+    link_extractor = SgmlLinkExtractor()
 
-    def parse_pages(self, response):
+    def __init__(self, *a, **kw):
+        super(ZhongminSpider, self).__init__(*a, **kw)
+        self._compile_url_matches()
+
+    def parse(self, response):
+        links = self.link_extractor.extract_links(response) 
+        for link in links:
+            if link.url not in self.crawled_url_set:
+                self.crawled_url_set.add(link.url)
+                yield(Request(url = link.url))
+        for url_match in self.url_matches:
+            requests = url_match.match(response)
+            if requests:
+                for request_or_item in requests:
+                    yield request_or_item
+
+    def parse_travel_asy(self, response):
+        xxs = XmlXPathSelector(response)
+        xxs.remove_namespaces()
+        json_object = json.loads(xxs.select("//string/text()").extract()[0])
+        request_list = []
+        for product in json_object['product']:
+            if product['isYuyue'] == 'True':
+                url = 'http://www.zhongmin.cn/Product/ProductDetails.aspx?pid=%s&bid=11' % product['Id']
+            else:
+                url = 'http://www.zhongmin.cn/Travel/Product/TravelDetailArr%(Id)s-%(age)sd%(day)s.html' % product
+            request_list.append(Request(url = url))
+        return request_list
+    
+    def parse_index(self, response):
         hxs = HtmlXPathSelector(response)
         page_count = hxs.select("//div[@id='pager1']/b/text()").extract()
         if page_count:
             page_count = int(page_count[0])
-            self.log("Parse %d pages from %s" % (page_count, response.url))
+            request_list = []
+            #self.log("Parse %d pages from %s" % (page_count, response.url))
             for i in range(1, page_count + 1):
-                yield Request(url = TRAVEL_PAGE_URL, 
+                request_list.append(Request(url = TRAVEL_TURN_PAGE_URL, 
                         method = "POST", 
                         body = "age=-1&day=1&safe=-1&com=-1&area=-1&order=0&field=0&page=%d&type=0" % i,
                         headers = {
@@ -87,19 +133,8 @@ class ZhongminSpider(CrawlSpider):
                             "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
                             "X-Requested-With": "XMLHttpRequest",
                             "Accept": "*/*",    
-                        })
-
-    def parse_page_url(self, response):
-        self.log("###############Parse_page_url")
-        xxs = XmlXPathSelector(response)
-        xxs.remove_namespaces()
-        json_object = json.loads(xxs.select("//string/text()").extract()[0])
-        for product in json_object['product']:
-            if product['isYuyue'] == 'True':
-                url = 'http://www.zhongmin.cn/Product/ProductDetails.aspx?pid=%s&bid=11' % product['Id']
-            else:
-                url = 'http://www.zhongmin.cn/Travel/Product/TravelDetailArr%(Id)s-%(age)sd%(day)s.html' % product
-            yield Request(url = url)
+                        }))
+            return request_list
 
     def parse_travel_item(self, response):
         self.log("********************************************parse_item*************************************** %s " % (response.url))
@@ -122,3 +157,12 @@ class ZhongminSpider(CrawlSpider):
                     category = category,
                     is_valid = True,
                     last_crawl_time = last_crawl_time)
+
+    def _compile_url_matches(self):
+        def get_method(method):
+            if callable(method):return method
+            else:
+                return getattr(self, method, None)
+        for url_match in self.url_matches:
+            url_match.m_callback = get_method(url_match.m_callback)
+
