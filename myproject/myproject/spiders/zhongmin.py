@@ -10,6 +10,7 @@ from datetime import datetime
 
 TRAVEL_TURN_PAGE_URL = "http://www.zhongmin.cn/TravelAsy.asmx/TravelList"
 ACCID_TURN_PAGE_URL = "http://www.zhongmin.cn/accid/AshxFile/AccidentList.ashx"
+HEALTH_TURN_PAGE_URL = "http://www.zhongmin.cn/health/AshxFile/list.ashx"
 
 class ItemParser:
     def ParseTitle(self, hxs):
@@ -82,7 +83,8 @@ class ZhongminSpider(BaseSpider):
             ]
     start_urls = [
             'http://www.zhongmin.cn/Travel/',
-            'http://www.zhongmin.cn/accid/'
+            'http://www.zhongmin.cn/accid/',
+            'http://www.zhongmin.cn/sitemap.xml'
             ]
     
     url_matches = (
@@ -91,6 +93,8 @@ class ZhongminSpider(BaseSpider):
                     'Travel/Product/TravelDetailArr.*html',
                     'ProductDetails.aspx',
                     '/accid/Product/accident\d+.html',
+                    'product',
+                    'Product',
                     ], 
             callback = "parse_item",
         ), 
@@ -110,6 +114,10 @@ class ZhongminSpider(BaseSpider):
             patterns = ['www.zhongmin.cn/accid/$'],
             callback = "parse_accid_index",
         ),
+        UrlMatch(
+            patterns = ['sitemap.xml'],    
+            callback = "parse_site_map",
+        ),
     )
     crawled_url_set = set()
 
@@ -119,9 +127,11 @@ class ZhongminSpider(BaseSpider):
         'ProductDetails.aspx',
         'TravelAsy',
         'www.zhongmin.cn/Travel/',
+        'product',
+        'Product',
     ]
 
-    link_extractor = SgmlLinkExtractor(allow = valid_url_patterns)
+    link_extractor = SgmlLinkExtractor(allow = valid_url_patterns, )
     item_parser_factory = ItemParserFactory()
 
     def __init__(self, *a, **kw):
@@ -139,6 +149,15 @@ class ZhongminSpider(BaseSpider):
             if requests:
                 for request_or_item in requests:
                     yield request_or_item
+
+    def parse_site_map(self, response):
+        regex = re.compile('<loc>(.*)</loc>')
+        for line in response.body.split('\r\n'):
+            if line.find("<loc>")!=-1  and line.find('roduct')!= -1:
+                line = line.strip('\r\n ')
+                mo = regex.search(line)
+                if mo:
+                    yield(Request(url = mo.groups()[0]))
 
     def parse_travel_asy(self, response):
         xxs = XmlXPathSelector(response)
@@ -214,7 +233,7 @@ class ZhongminSpider(BaseSpider):
             yield MyItem(title = title, 
                     #body = body,
                     url = url, 
-                    #clause_html = clause_html, 
+                    clause_html = clause_html, 
                     brand = brand, 
                     domain = self.domain,
                     category = category,
