@@ -5,5 +5,8 @@ import sys
 d = DataFrame()
 item = d.QueryByUrl(sys.argv[1]) 
 if item:
-    print item
+    for key, value in item.items():
+        print key
+        print value
+        print '-'*10
  

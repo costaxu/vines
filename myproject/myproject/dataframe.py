@@ -30,3 +30,8 @@ class DataFrame:
     def BatchQueryByDomain(self, domain):
         for item in self.collection.find({'domain': domain}):
             yield item
+    
+    def BatchQuery(self, domain, condition = None):
+        for item in self.collection.find(condition):
+            yield item
+
