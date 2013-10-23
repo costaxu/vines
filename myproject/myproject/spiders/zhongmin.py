@@ -20,9 +20,9 @@ class ItemParser:
             return title
 
     def ParseClauseHtml(self, hxs):
-        clause_div = hxs.select("//div[@class='xxk']")
-        if clause_div:
-            return clause_div.extract()
+        clause_tables = hxs.select("//div[@class='bgbs']/table").extract()
+        if clause_tables:
+            return '\n'.join(clause_tables)
 
     def ParseBrand(self, hxs):
         brand = hxs.select('//div[@class="mycx_wz"]/a/text()').extract()
