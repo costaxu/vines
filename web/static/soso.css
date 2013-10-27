@@ -1,5 +1,3 @@
-
-@charset "gb2312";
 body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, form, input, textarea, p, th, td {
     margin: 0;
     padding: 0;
@@ -1863,7 +1861,7 @@ a:link, #l a, #l a:visited, #pager .pg a, #pager .pg a:link, #pager .pg a:visite
     float: none;
     margin-left: 20px;
 }
-.sBox .s_input {
+.s_input {
     border: 1px solid #B8C3C9;
     border-bottom-left-radius: 2px;
     border-top-left-radius: 2px;
@@ -1873,6 +1871,8 @@ a:link, #l a, #l a:visited, #pager .pg a, #pager .pg a:link, #pager .pg a:visite
     outline: 0 none;
     padding: 6px 5px 7px;
     width: 539px;
+    display: inline;
+    margin-left: 20px;
 }
 .sBox .s_input_h {
     border-color: #157EFB;
@@ -1944,11 +1944,15 @@ p a.check {
 }
 .fixBox {
 }
-.fixBox .s_input {
-    display: inline;
-    margin-left: 20px;
-}
+
 .fixBox #smart_pop {
     left: 20px;
     top: 53px;
+}
+.s_btn {
+    height: 34px;
+    width: 80px;
+}
+#main{
+    margin-left: 20px;
 }

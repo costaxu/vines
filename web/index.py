@@ -21,8 +21,8 @@ class index:
                     total_page = None,
                     keyword = None)
         limit_start = (current_page - 1) * ITEM_PER_PAGE
-        limit_end = limit_start + ITEM_PER_PAGE
-        limit = limit_start, limit_end
+        limit_len = ITEM_PER_PAGE
+        limit = limit_start, limit_len
         length, item_list = dfo.QueryKeyWord(keyword, limit = limit)
         total_page = length / ITEM_PER_PAGE 
         if length % ITEM_PER_PAGE :
