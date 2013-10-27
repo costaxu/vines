@@ -9,12 +9,14 @@ def ScanItem(item):
         print 'error item has no url'
         return
     url = item['url']
+    time = item['last_crawl_time']
     for key in MyItem.fields.keys():
         if key in ('body'): continue
         if not item.has_key(key) or item[key] is None:
             print url
             print "has no key"
             print key
+            print time
             continue
         if type(item[key]) == str or\
                 type(item[key]) == unicode:
@@ -22,10 +24,11 @@ def ScanItem(item):
                 print url
                 print "has no string key"
                 print key
+                print time
 
 
 #for item in d.QueryAll():
 #for item in d.BatchQueryByDomain('hzins.com'):
-for item in d.BatchQueryByDomain('ubao.com'):
+for item in d.BatchQueryByDomain('zhongmin.cn'):
     ScanItem(item)
 

@@ -44,13 +44,22 @@ class AspxItemParser(ItemParser):
             title = title[0]
             title = title.replace('\r\n', '').replace(' ','')
             return title
+class LtviewAspxParser(ItemParser):
+    def ParseTitle(self, hxs):
+        title = hxs.select('//div[@class="cplpgp_tit"]/text()').extract()
+        if title:
+            title = title[0]
+            title = title.replace('\r\n', '').replace(' ','')
+            return title
 
 class ItemParserFactory:
     item_parser = ItemParser()
     aspx_item_parser = AspxItemParser()
+    ltview_aspx_parser = LtviewAspxParser()
     url_parser_map = {
         "ProductDetails.aspx" : aspx_item_parser,
         "accident\d+.html" : aspx_item_parser,
+        "ltview.aspx" : ltview_aspx_parser,
     }
     def CreateItemParser(self, url):
         for pattern, parser in self.url_parser_map.items():
@@ -239,6 +248,8 @@ class ZhongminSpider(BaseSpider):
                     category = category,
                     is_valid = True,
                     last_crawl_time = last_crawl_time)
+        else:
+            self.log("notfind item in %s" % (response.url))
 
     def _compile_url_matches(self):
         def get_method(method):

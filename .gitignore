@@ -2,3 +2,5 @@
 *.pyo
 output
 myproject/log
+myproject/sh/*.txt
+myproject/sh/*.xml
