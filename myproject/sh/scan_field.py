@@ -26,6 +26,6 @@ def ScanItem(item):
 
 #for item in d.QueryAll():
 #for item in d.BatchQueryByDomain('hzins.com'):
-for item in d.BatchQueryByDomain('ubao.com'):
+for item in d.BatchQueryByDomain('kaixinbao.com'):
     ScanItem(item)
 

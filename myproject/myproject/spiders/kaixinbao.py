@@ -30,7 +30,7 @@ class KaixinbaoSider(InsuranceSpider):
             Rule(
                 SgmlLinkExtractor(
                     allow = ('baoxian', 'index'), 
-                ) 
+                ), 
             ),
     )
 
