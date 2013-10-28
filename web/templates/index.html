@@ -1,0 +1,75 @@
+$def with (length, item_list, current_page, total_page, keyword)
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gbk" />
+<title>insurance search</title>
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+<link rel="stylesheet" href="/static/soso.css"/>
+<style></style>
+</head>
+
+<body>
+<div id="top"></div>
+
+<div id="header" >
+	<div id="s">
+        <form action="/" id="flpage" name="flpage" method="GET">
+            <input type="text" value="" id="s_input"  class="s_input" name="w" />
+            <input type="submit" id="s_button" value="search" class="s_btn"  />
+        </form>
+	    <div id="smart_pop" style="display:none;"></div>
+	</div>
+</div>
+
+<div id="main">
+$if length is not None:
+    <div id="sInfo">为您找到$length条相关结果</div>
+$if length:
+    <div class="result">
+        <ol>
+            $for item in item_list:
+                <li>
+                    <h3><a href="$item['url']">$item['title']</a></h3>
+                    <p class="ds">
+                        保险种类:
+                        $if item.has_key('category'):
+                            $item['category']
+                        $else:
+                            N/A
+                        保险公司:
+                        $if item.has_key('brand'):
+                            $item['brand']
+                        $else:
+                            N/A
+                        是否在售:
+                        $if item.has_key('is_valid'):
+                            $item['is_valid']
+                        $else:
+                            N/A
+                    </p>
+
+                    <div>
+                    $if item.has_key('clause_html'):
+                        $:item['clause_html']
+                    </div>
+                    <cite>
+                        $item['url']
+                    </cite>
+                    <p>
+                        $item['last_crawl_time']
+                    </p>
+                    <br>
+                    <br>
+                </li>
+        </ol>
+    </div>
+    <div id="pager">
+        <span class="current">$current_page</span>
+        $for i in range(1, total_page + 1):
+            <a class="flag_pg" href="/?w=$keyword&p=$i">$i</a>
+    </div>
+</div>
+
+</body>
+</html>

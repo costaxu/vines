@@ -22,7 +22,7 @@ def PrintItem(item):
 
 #for item in d.QueryAll():
 #for item in d.BatchQueryByDomain('hzins.com'):
-for item in d.BatchQueryByDomain('kaixinbao.com'):
+for item in d.BatchQueryByDomain('zhongmin.cn'):
     PrintItem(item)
         
     #if item.has_key('clause_html') and item['clause_html'] == None :#and item['clause_html'].find(u'保障内容') == -1:

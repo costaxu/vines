@@ -35,3 +35,15 @@ class DataFrame:
         for item in self.collection.find(condition):
             yield item
 
+    def QueryKeyWord(self, keyword, limit = (0, 10)):
+        if type(keyword) == str:
+            keyword = keyword.decode('utf-8')
+        item_list = []
+        for item in self.collection.find():
+            for value in item.values():
+                if type(value) == unicode:
+                    if value.find(keyword) != -1:
+                        item_list.append(item)
+        start, length = limit
+        end = start + length
+        return len(item_list), item_list[start:end]
