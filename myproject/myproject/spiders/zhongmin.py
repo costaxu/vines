@@ -166,7 +166,9 @@ class ZhongminSpider(BaseSpider):
                 line = line.strip('\r\n ')
                 mo = regex.search(line)
                 if mo:
-                    yield(Request(url = mo.groups()[0]))
+                    url = mo.groups()[0]
+                    url = url.replace('amp;', '')
+                    yield(Request(url = url))
 
     def parse_travel_asy(self, response):
         xxs = XmlXPathSelector(response)
